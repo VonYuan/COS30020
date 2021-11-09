@@ -101,16 +101,13 @@
     		$scpassword = mysqli_escape_string($conn,$_POST['cpassword']);
 			$query = "SELECT*FROM users WHERE user_email='$semail'";
 			$result=mysqli_query($conn,$query);	
-			//if (!mysqli_query($conn,$query)) {
-				//echo("Error description: " . mysqli_error($conn));
-			  //}	//query
+			
 			$r_cout=mysqli_num_rows($result);
 	
 			if($r_cout < 1){
-				$hashedpassword = hash("sha256",$spassword);
 				$date=date('Y-m-d');
 				$query="INSERT INTO users (user_email, password, profile_name, date_started, num_of_friends)
-				VALUES('$semail','$hashedpassword','$spname','$date',0)";
+				VALUES('$semail','$spassword','$spname','$date',0)";
 				mysqli_query($conn,$query);
 
 				
