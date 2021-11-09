@@ -69,4 +69,290 @@ function sanitizeInput($conn,$input){
 }
 
 
+function getNow($conn){
+    $state = "error";
+        $errMsg = array();
+        $query = "SELECT * FROM users ORDER BY profile_name ASC";
+        $result = mysqli_query($conn, $query);
+        
+        if($result){
+            while ($row = mysqli_fetch_assoc($result)) {
+                if ($_SESSION['name'] == $row['profile_name']) {
+                    $_SESSION['ID'] = $row['user_ID'];
+                }
+        }
+}
+
+}
+
+
+
+
+function showFriendsList($conn, $offset, $numOfPage){
+    $state = "error";
+
+    if(!$conn){
+        echo "Cannot connect to the database";
+        
+    } else {
+        mysqli_select_db($conn,"social_db");
+        $query = "SELECT * FROM users ORDER BY profile_name ASC";
+        $result = mysqli_query($conn, $query);
+
+        if(!$result){
+            echo "Fetch Error";
+
+        }else{
+            getNow($conn); 
+            while ($row = mysqli_fetch_assoc($result)) {
+                $f_friendID = $row['user_ID'];
+                $f_name = $row['profile_name'];
+
+                $searchQuary = "SELECT * FROM myFriends WHERE user_ID = '".$_SESSION['ID']."' LIMIT $offset, $numOfPage";
+                $searchResult = mysqli_query($conn, $searchQuary);
+
+                while ($row = mysqli_fetch_assoc($searchResult)) {
+                    $myf_friendID2= $row['friend_id'];
+                    if ($myf_friendID2 == $f_friendID) {
+                        echo "
+                        <tr>
+                            <td>
+                                <p> $f_name </p>
+                            </td>
+                            <td>
+                                <input type='submit' name='FRND_".$f_friendID."' value='unfriend'>
+                            </td>
+                        </tr>
+                        ";
+                    }
+                }
+            }
+            mysqli_free_result($searchResult);
+            mysqli_free_result($result);
+            removeFriendLogic($conn);
+        }
+    }
+}
+
+function removeFriendLogic($conn){
+    $state = "error";
+
+
+    if(!$conn){
+        echo "Cannot connect to the database";
+    } else {
+        mysqli_select_db($conn,"social_db");
+        $query = "SELECT * FROM myFriends WHERE user_ID = '".$_SESSION['ID']."'";
+        $result = mysqli_query($conn, $query);
+
+        if (!$result) {
+          echo"Cannot fetch requested query";
+
+        } else {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $myf_friendID2 = $row['friend_id'];
+                /*set the buttons to FRND_(their id) and called removeFriend to get functions*/
+                echo((isset($_POST["FRND_$myf_friendID2"]))? removeFriend($conn, $myf_friendID2): "");
+            }
+
+            mysqli_free_result($result);
+            mysqli_close($conn);
+        }
+    }
+}
+
+
+function removeFriend($conn, $userID){
+    $state = "error";
+    $errMsg="";
+
+    if (!$conn) {
+        echo "Cannot connect to the database";
+
+    } else {
+        mysqli_select_db($conn,"social_db");
+        $query = "DELETE FROM myFriends WHERE user_ID = ".$_SESSION['ID']." AND friend_id = $userID";
+        $result = mysqli_query($conn, $query);
+
+        if (!$result) {
+            echo"Cannot fetch requested query";
+
+        } else {
+            $state = "success";
+            $_SESSION['noOfFriends']--;
+            $query = "UPDATE users SET num_of_friends = '".$_SESSION['noOfFriends']."' WHERE user_ID  = '".$_SESSION['ID']."'";
+            $result = mysqli_query($conn, $query);
+
+            $query = "SELECT profile_name FROM users WHERE user_ID  = '$userID'";
+            $result = mysqli_query($conn, $query);
+
+            while ($row = mysqli_fetch_assoc($result)) {
+                echo "Friend Removed", $row['profile_name']." is no longer your friend. <br> <em>Please refresh your page to see changes.</em>";
+                
+            }
+        }
+    }
+}
+
+
+function showRegisteredUsers($conn, $offset, $numOfPage){
+    $state = "error";
+    $errMsg = array();
+    if (!$conn) {
+        array_push($errMsg, "Mercury Server", "Cannot connect to the database");
+        return displayMessage($errMsg, $state);
+    } else {
+        getNow($conn);
+        $query = "SELECT user_ID, profile_name FROM users 
+        WHERE user_ID NOT IN (SELECT friend_id FROM myFriends where user_ID=".$_SESSION['ID'].")  AND user_ID != ".$_SESSION['ID']."
+        GROUP BY profile_name ASC LIMIT $offset, $numOfPage"; 
+        $result = mysqli_query($conn, $query);
+
+        if (!$result) {
+            array_push($errMsg, "Query", "Cannot fetch requested query");
+            return displayMessage($errMsg, $state);
+        } else {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $f_userName = $row['profile_name'];
+                $f_userID = $row['user_ID'];
+
+                echo "
+                    <tr>
+                        <td>
+                            <p>$f_userName</p>
+                        </td>
+                        <td>
+                            <input type='submit' name='FRND_".$f_userID."' value='Add Friend'>
+                        </td>
+                    </tr>
+                    ";
+            }
+            mysqli_free_result($result);
+            addFriendLogic($conn);
+        }
+    }
+}
+
+function addFriendLogic($conn){
+    $state = "error";
+    $errMsg = array();
+
+    if(!$conn){
+        array_push($errMsg, "Mercury Server", "Cannot connect to the database");
+        return displayMessage($errMsg, $state);
+    } else {
+        mysqli_select_db($conn,"social_db");
+        $query = "SELECT * FROM users WHERE user_ID != '".$_SESSION['ID']."'";
+        $result = mysqli_query($conn, $query);
+
+        if (!$result) {
+            array_push($errMsg, "Query", "Cannot fetch requested query");
+            return displayMessage($errMsg, $state);
+        } else {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $f_userID = $row['user_ID']; 
+                echo((isset($_POST["FRND_$f_userID"]))? addFriend($conn, $f_userID): "");
+            }
+
+            mysqli_free_result($result);
+            mysqli_close($conn);
+        }
+    }
+}
+
+function addFriend($conn, $userID){
+    $state = "error";
+    $errMsg = array();
+
+    if (!$conn) {
+        array_push($errMsg, "Mercury Server", "Cannot connect to the database");
+        return displayMessage($errMsg, $state);
+    } else {
+        getNow($conn);
+        $query = "INSERT INTO myFriends VALUES(".$_SESSION['ID'].", $userID)";
+        $result = mysqli_query($conn, $query);
+
+        if (!$result) {
+            array_push($errMsg, "Query", "Cannot fetch requested query");
+            return displayMessage($errMsg, $state);
+        } else {
+            $state = "success";
+            $_SESSION['noOfFriends']++;
+            $query = "UPDATE users SET num_of_friends = '".$_SESSION['noOfFriends']."' WHERE friend_id = '".$_SESSION['ID']."'";
+            $result = mysqli_query($conn, $query);
+
+            $query = "SELECT profile_name FROM users WHERE user_ID  = '$userID'";
+            $result = mysqli_query($conn, $query);
+
+            while ($row = mysqli_fetch_assoc($result)) {
+                array_push($errMsg, "Friend Added", $row['profile_name']." is now your new friend!<br> <em>Please refresh your page to see changes.</em>");
+                return displayMessage($errMsg, $state);
+            }
+        }
+    }
+}
+
+
+function displayMessage($errMsg, $state){
+    $dataAmount = count($errMsg);
+    $fieldName = array();
+    $reason = array();
+    $data = "";
+    /*
+    *SPLIT $errMsg INTO 2 SEPERATE DATA / ARRAY:
+    *    -$fieldName
+    *    -$reason
+    */
+    //FIELD NAME
+    for($i=0; $i < $dataAmount; $i+=2){
+        array_push($fieldName, $errMsg[$i]);
+    }
+
+    //REASON
+    for($i=1; $i < $dataAmount; $i+=2){
+        array_push($reason, $errMsg[$i]);
+    }
+
+    /*
+    NEATLY PUT THE MESSAGE BACK INTO A 
+    READABLE HTML FORMAT
+    */
+    for($i=0; $i < count($reason); $i++){
+        $data .= "
+        <p><strong>".$fieldName[$i].":</strong> - 
+        <em>".$reason[$i].".</em></p>
+        ";
+    }
+    /*
+    SWITCH CASE TO INDICATE IF ITS AN ERROR,
+    WARNING OR SUCCESS. CHANGE THE BACKGROUND
+    OF THE MESSAGE. 
+    */
+    switch ($state) {
+        case 'error':
+            $state = "alertFail";
+            break;
+        
+        case 'warn':
+            $state = "alertWarning";
+            break;
+
+        case 'success':
+            $state = "alertSuccess";
+            break;
+
+        default:
+            $state = "NADA";
+            break;
+    }
+
+    $displayMessage = "
+    <nav class='alertMessage' id='$state'>
+        $data
+    </nav>
+    ";
+    return $displayMessage;
+}
+
+
 ?>
