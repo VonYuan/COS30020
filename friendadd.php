@@ -1,5 +1,5 @@
 <?php
-    session_start();
+    if (session_status() == PHP_SESSION_NONE)session_start();
 
     if(!isset($_SESSION['login'])){
         header("Location: index.php");
@@ -21,10 +21,13 @@
     require_once("functions/connection.php");
     $numFriendsPerPage = 5;
     $offSet = ($pageNum-1) * $numFriendsPerPage;
-    $query = "SELECT COUNT(*) total FROM users";
+    mysqli_select_db($conn,"social_db");
+    $query = "SELECT * FROM users";
+    	
     $result = mysqli_query($conn, $query);
+    $r_c = mysqli_num_rows($result);
     //round totalPage as a whole number
-    $totalPage = ceil(($result) / $numFriendsPerPage);
+    $totalPage = ceil(($r_c) / $numFriendsPerPage);
 
         if ($pageNum < 2) {
             echo "<a class='button' href='?pageNum=".($pageNum+1)."'> Next </a>";
@@ -36,13 +39,14 @@
         }
     
 ?>
-        <form method="POST" action="<?php echo $_SERVER['PHP_SELF'] ?>">
+
+<form method="POST" action="<?php echo $_SERVER['PHP_SELF'] ?>">
             <table class="friendList">
                <?php
                 require_once("functions/connection.php");
+                require_once("functions/function.php");
+                showRegisteredUsers($conn, $offSet, $numFriendsPerPage);
                 
                 ?>
             </table>
         </form>
-
-<?php
