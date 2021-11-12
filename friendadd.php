@@ -20,7 +20,7 @@
 
     require_once("functions/connection.php");
     $numFriendsPerPage = 5;
-    $offSet = ($pageNum-1) * $numFriendsPerPage;
+    $lines = ($pageNum-1) * $numFriendsPerPage;
     mysqli_select_db($conn,"social_db");
     $query = "SELECT * FROM users";
     	
@@ -45,7 +45,7 @@
                <?php
                 require_once("functions/connection.php");
                 require_once("functions/function.php");
-                showRegisteredUsers($conn, $offSet, $numFriendsPerPage);
+                showRegisteredUsers($conn, $lines, $numFriendsPerPage);
                 
                 ?>
             </table>

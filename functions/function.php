@@ -195,48 +195,43 @@ function removeFriend($conn, $userID){
 }
 
 
-function showRegisteredUsers($conn, $offset, $numOfPage){
+function showRegisteredUsers($conn, $lines, $numOfPage){
     $state = "error";
-    $errMsg = array();
-    if (!$conn) {
-        array_push($errMsg, "Mercury Server", "Cannot connect to the database");
-        return displayMessage($errMsg, $state);
-    } else {
+    if($conn){
         getNow($conn);
         $query = "SELECT user_ID, profile_name FROM users 
         WHERE user_ID NOT IN (SELECT friend_id FROM myFriends where user_ID=".$_SESSION['ID'].")  AND user_ID != ".$_SESSION['ID']."
-        GROUP BY profile_name ASC LIMIT $offset, $numOfPage"; 
+        GROUP BY profile_name LIMIT $lines, $numOfPage"; 
         $result = mysqli_query($conn, $query);
-
-        if (!$result) {
-            array_push($errMsg, "Query", "Cannot fetch requested query");
-            return displayMessage($errMsg, $state);
-        } else {
+        if($result){
             while ($row = mysqli_fetch_assoc($result)) {
-                $f_userName = $row['profile_name'];
-                $f_userID = $row['user_ID'];
-
+                $profile_name = $row['profile_name'];
+                $userID = $row['user_ID'];
                 echo "
                     <tr>
                         <td>
-                            <p>$f_userName</p>
+                            <p>$profile_name</p>
                         </td>
                         <td>
-                            <input type='submit' name='FRND_".$f_userID."' value='Add Friend'>
+                            <input type='submit' name='Friends".$userID."' value='Add Friend'>
                         </td>
                     </tr>
                     ";
-            }
-            mysqli_free_result($result);
-            addFriendLogic($conn);
+                    mysqli_free_result($result);
+                    addFriendLogic($conn);
+        }
+        else{
+            echo"Cannot Execute The Query";
         }
     }
+    else{
+        echo"Cannot Connect To The Database";
+    }
+    
 }
 
 function addFriendLogic($conn){
     $state = "error";
-    $errMsg = array();
-
     if(!$conn){
         array_push($errMsg, "Mercury Server", "Cannot connect to the database");
         return displayMessage($errMsg, $state);
@@ -253,7 +248,6 @@ function addFriendLogic($conn){
                 $f_userID = $row['user_ID']; 
                 echo((isset($_POST["FRND_$f_userID"]))? addFriend($conn, $f_userID): "");
             }
-
             mysqli_free_result($result);
             mysqli_close($conn);
         }
@@ -290,68 +284,6 @@ function addFriend($conn, $userID){
             }
         }
     }
-}
-
-
-function displayMessage($errMsg, $state){
-    $dataAmount = count($errMsg);
-    $fieldName = array();
-    $reason = array();
-    $data = "";
-    /*
-    *SPLIT $errMsg INTO 2 SEPERATE DATA / ARRAY:
-    *    -$fieldName
-    *    -$reason
-    */
-    //FIELD NAME
-    for($i=0; $i < $dataAmount; $i+=2){
-        array_push($fieldName, $errMsg[$i]);
-    }
-
-    //REASON
-    for($i=1; $i < $dataAmount; $i+=2){
-        array_push($reason, $errMsg[$i]);
-    }
-
-    /*
-    NEATLY PUT THE MESSAGE BACK INTO A 
-    READABLE HTML FORMAT
-    */
-    for($i=0; $i < count($reason); $i++){
-        $data .= "
-        <p><strong>".$fieldName[$i].":</strong> - 
-        <em>".$reason[$i].".</em></p>
-        ";
-    }
-    /*
-    SWITCH CASE TO INDICATE IF ITS AN ERROR,
-    WARNING OR SUCCESS. CHANGE THE BACKGROUND
-    OF THE MESSAGE. 
-    */
-    switch ($state) {
-        case 'error':
-            $state = "alertFail";
-            break;
-        
-        case 'warn':
-            $state = "alertWarning";
-            break;
-
-        case 'success':
-            $state = "alertSuccess";
-            break;
-
-        default:
-            $state = "NADA";
-            break;
-    }
-
-    $displayMessage = "
-    <nav class='alertMessage' id='$state'>
-        $data
-    </nav>
-    ";
-    return $displayMessage;
 }
 
 
