@@ -15,7 +15,7 @@
             );";
             mysqli_query($conn, $query);
 
-            $query = "CREATE TABLE IF NOT EXISTS myfriends (
+            $query = "CREATE TABLE IF NOT EXISTS myFriends (
             user_id INT NOT NULL,
 			friend_id INT NOT NULL
             );";
@@ -88,7 +88,7 @@ function getNow($conn){
 
 
 
-function showFriendsList($conn, $offset, $numOfPage){
+function showFriendsList($conn, $lines, $numOfPage){
     $state = "error";
 
     if(!$conn){
@@ -108,7 +108,7 @@ function showFriendsList($conn, $offset, $numOfPage){
                 $f_friendID = $row['user_ID'];
                 $f_name = $row['profile_name'];
 
-                $searchQuary = "SELECT * FROM myFriends WHERE user_ID = '".$_SESSION['ID']."' LIMIT $offset, $numOfPage";
+                $searchQuary = "SELECT * FROM myFriends WHERE user_ID = '".$_SESSION['ID']."' LIMIT $lines, $numOfPage";
                 $searchResult = mysqli_query($conn, $searchQuary);
 
                 while ($row = mysqli_fetch_assoc($searchResult)) {
@@ -217,9 +217,11 @@ function showRegisteredUsers($conn, $lines, $numOfPage){
                         </td>
                     </tr>
                     ";
+                    
+        }
                     mysqli_free_result($result);
                     addFriendLogic($conn);
-        }
+    }
         else{
             echo"Cannot Execute The Query";
         }
@@ -233,8 +235,8 @@ function showRegisteredUsers($conn, $lines, $numOfPage){
 function addFriendLogic($conn){
     $state = "error";
     if(!$conn){
-        array_push($errMsg, "Mercury Server", "Cannot connect to the database");
-        return displayMessage($errMsg, $state);
+        echo"Cannot connect to the database";
+        
     } else {
         mysqli_select_db($conn,"social_db");
         $query = "SELECT * FROM users WHERE user_ID != '".$_SESSION['ID']."'";
@@ -242,11 +244,11 @@ function addFriendLogic($conn){
 
         if (!$result) {
             array_push($errMsg, "Query", "Cannot fetch requested query");
-            return displayMessage($errMsg, $state);
+            
         } else {
             while ($row = mysqli_fetch_assoc($result)) {
-                $f_userID = $row['user_ID']; 
-                echo((isset($_POST["FRND_$f_userID"]))? addFriend($conn, $f_userID): "");
+                $userID = $row['user_ID']; 
+                echo((isset($_POST["Friends$userID"]))? addFriend($conn, $userID): "");
             }
             mysqli_free_result($result);
             mysqli_close($conn);
@@ -256,19 +258,17 @@ function addFriendLogic($conn){
 
 function addFriend($conn, $userID){
     $state = "error";
-    $errMsg = array();
+   
 
     if (!$conn) {
-        array_push($errMsg, "Mercury Server", "Cannot connect to the database");
-        return displayMessage($errMsg, $state);
+        
     } else {
         getNow($conn);
         $query = "INSERT INTO myFriends VALUES(".$_SESSION['ID'].", $userID)";
         $result = mysqli_query($conn, $query);
 
         if (!$result) {
-            array_push($errMsg, "Query", "Cannot fetch requested query");
-            return displayMessage($errMsg, $state);
+           
         } else {
             $state = "success";
             $_SESSION['noOfFriends']++;
@@ -279,8 +279,8 @@ function addFriend($conn, $userID){
             $result = mysqli_query($conn, $query);
 
             while ($row = mysqli_fetch_assoc($result)) {
-                array_push($errMsg, "Friend Added", $row['profile_name']." is now your new friend!<br> <em>Please refresh your page to see changes.</em>");
-                return displayMessage($errMsg, $state);
+                echo"Friend Added", $row['profile_name']." is now your new friend!<br> <em>Please refresh your page to see changes.</em>";
+
             }
         }
     }

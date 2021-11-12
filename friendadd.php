@@ -27,7 +27,7 @@
     $result = mysqli_query($conn, $query);
     $r_c = mysqli_num_rows($result);
     //round totalPage as a whole number
-    $totalPage = ceil(($r_c) / $numFriendsPerPage);
+    $totalPage = $r_c/5;
 
         if ($pageNum < 2) {
             echo "<a class='button' href='?pageNum=".($pageNum+1)."'> Next </a>";
@@ -40,13 +40,13 @@
     
 ?>
 
-<form method="POST" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-            <table class="friendList">
+        <form method="POST" action="<?php echo $_SERVER['PHP_SELF'] ?>">
+            
                <?php
                 require_once("functions/connection.php");
                 require_once("functions/function.php");
                 showRegisteredUsers($conn, $lines, $numFriendsPerPage);
                 
                 ?>
-            </table>
+
         </form>
