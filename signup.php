@@ -5,20 +5,34 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Document</title>
+		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
-	<form id ="signupform" name="signupform" method="POST" action="signup.php">
-			<label for="email">Email:</label>
-			<input type="text" id="email" name="email" placeholder='e.g."abcd@gmail.com"'/>
-			<label for="pname">Profile Name:</label>
-			<input type="text" id="pname" name="pname" placeholder='e.g."George Russell"'/>
-			<input type="password" id="password" name="password" placeholder='e.g."abcd1234"'/>
-			<label for="cpassword">Confirm Password:</label>
-			<input type="password" id="cpassword" name="cpassword"/>
+	<h1 class="title">Sign up</h1>
+<div class ="signupFrm">
 
-		<input class="register" type="submit" value="Register" id="register" name="register"/>	
-		<input class="clear" type="reset" value="Clear" id="clear" name="clear"/>	
+	<form class ="form" id ="signupform" name="signupform" method="POST" action="<?php echo $_SERVER['PHP_SELF'] ?>">
+	<div class="inputContainer">
+			<label for="email" class="label">Email:</label>
+			<input type="text" class="input1" id="email" name="email" placeholder='e.g."abcd@gmail.com"'/>
+</div>
+<div class="inputContainer">
+			<label for="pname" class="label">Profile Name:</label>
+			<input type="text" class="input1"id="pname" name="pname" placeholder='e.g."George Russell"'/>
+</div>
+<div class="inputContainer">
+			<label for="password" class="label">Password:</label>
+			<input type="password" class="input1"id="password" name="password" placeholder='e.g."abcd1234"'/>
+</div>
+<div class="inputContainer">
+			<label for="cpassword" class="label">Confirm Password:</label>
+			<input type="password" class="input1"id="cpassword" name="cpassword"/>
+			</div>
+		<input class="submitBtn" type="submit" value="Register" id="register" name="register"/>	
+		<input class="submitBtn" type="reset" value="Clear" id="clear" name="clear"/>
+		<input class="submitBtn" type="button" value="Home" class="homebutton" id="btnHome" onClick="document.location.href='index.php'" />
 		</form>
+</div>
 <?php
 		
 	$emailErr=$pnameErr=$passwordErr=$cpasswordErr="";
@@ -129,13 +143,15 @@
 			
 			header("Location: friendadd.php");		//redirect to friendadd.php
 		}else{
-		echo"<fieldset>";
+		echo"<div class='f1f'>";
+		echo"<fieldset class='f1'>";
 		echo"<legend>Error Message</legend>";
-		echo $emailErr;
-		echo $pnameErr;
-		echo $passwordErr;
+		echo $emailErr."<br>";
+		echo $pnameErr."<br>";
+		echo $passwordErr."<br>";
 		echo $cpasswordErr;
 		echo"</fieldset>";
+		echo"</div>";
 		}
 	}
 	?>

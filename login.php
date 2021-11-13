@@ -44,32 +44,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+<h1 class="title">Login</h1>
 
 
-	<article>
-	<div id="lform">
-	<form id ="loginform" name="loginform" method="POST" action="login.php">
-		<span><label for="lemail">Email:</label></span><br/>
-		<input type="text" id="lemail" name="lemail" class="input" value="<?php echo $email ?>"/><br/>
-		<span class="error" style="color: red;"><?php echo $emailErr?></span>
-		<br/><br/>
-				
-		<span><label for="lpassword">Password:</label></span><br/>
-		<input type="password" id="lpassword" name="lpassword" class="input"/><br/>
-		<span class="error" style="color: red;"><?php echo $passwordErr?></span>
-		<br/><br/>
-		
-	<input class="login" type="submit" value="Log in" id="login" name="login"/>	
-	<input class="clear" type="reset" value="Clear" id="clear" name="clear"/>	
+	<div class="signupFrm">
+	<form class ="form" id ="loginform" name="loginform" method="POST" action="login.php">
+	<div class="inputContainer">
+		<label for="lemail" class="label">Email:</label>
+		<input type="text"  class="input1" id="lemail" name="lemail" class="input" value="<?php echo $email ?>"/><br>
+
+</div>
+<div class="inputContainer">	
+		<label for="lpassword" class="label">Password:</label>
+		<input type="password"  class="input1" id="lpassword" name="lpassword" class="input"/><br>
+
+
+</div>
+	<div class="error"><?php echo $emailErr?></div>	
+	<div class="error"><?php echo $passwordErr?></div>	
+	<input class="submitBtn" type="submit" value="Log in" id="login" name="login"/>	
+	<input class="submitBtn" type="reset" value="Clear" id="clear" name="clear"/>
+	<input class="submitBtn" type="button" value="Home" class="homebutton" id="btnHome" onClick="document.location.href='index.php'" />
+	
 	</form>
-	<br/>
-	<p style="text-align: center;"><span class="backtohome"><a href="index.php">Back To Home</a></span></p>
+
 	</div>
-	</article>
+	
+
+
+
 
 </body>
 </html>

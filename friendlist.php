@@ -50,7 +50,7 @@
             <table class="friendList">
             <?php
                 require_once("functions/connection.php");
-                showFriendsList($conn, $offSet, $numFriendsPerPage);
+                showFriends($conn, $offSet, $numFriendsPerPage);
             ?>
             </table>
         </form>

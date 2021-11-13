@@ -7,6 +7,14 @@
     <title>Assignment 2 Friends</title>
 </head>
 <body>
+<nav>
+	<ul>
+		<li><a href="index.php">Home</a></li>
+		<li><a href="signup.php">Sign-Up</a></li>
+		<li><a href="login.php">Log-In</a></li>
+		<li><a href="about.php">About</a></li>
+	</ul>
+	</nav>
     <h1>My Social Circle </h1>
     <p>Name: Voon Boon Yuan</p>
     <p>Student ID: Voon Boon Yuan</p>

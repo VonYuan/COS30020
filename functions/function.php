@@ -63,15 +63,8 @@ function insertdataintomyfriend($conn){
         
     }
 }
-function sanitizeInput($conn,$input){
-   $input = mysqli_real_escape_string($conn,$input);
-   return $input;
-}
-
-
 function getNow($conn){
-    $state = "error";
-        $errMsg = array();
+
         $query = "SELECT * FROM users ORDER BY profile_name ASC";
         $result = mysqli_query($conn, $query);
         
@@ -80,29 +73,16 @@ function getNow($conn){
                 if ($_SESSION['name'] == $row['profile_name']) {
                     $_SESSION['ID'] = $row['user_ID'];
                 }
-        }
+            }
+        }   
 }
-
-}
-
-
-
-
-function showFriendsList($conn, $lines, $numOfPage){
-    $state = "error";
-
-    if(!$conn){
-        echo "Cannot connect to the database";
-        
-    } else {
+function showFriends($conn, $lines, $numOfPage){
+    if($conn){
         mysqli_select_db($conn,"social_db");
         $query = "SELECT * FROM users ORDER BY profile_name ASC";
         $result = mysqli_query($conn, $query);
 
-        if(!$result){
-            echo "Fetch Error";
-
-        }else{
+        if($result){
             getNow($conn); 
             while ($row = mysqli_fetch_assoc($result)) {
                 $f_friendID = $row['user_ID'];
@@ -112,8 +92,8 @@ function showFriendsList($conn, $lines, $numOfPage){
                 $searchResult = mysqli_query($conn, $searchQuary);
 
                 while ($row = mysqli_fetch_assoc($searchResult)) {
-                    $myf_friendID2= $row['friend_id'];
-                    if ($myf_friendID2 == $f_friendID) {
+                    $userID= $row['friend_id'];
+                    if ($userID == $f_friendID) {
                         echo "
                         <tr>
                             <td>
@@ -128,31 +108,42 @@ function showFriendsList($conn, $lines, $numOfPage){
                 }
             }
             mysqli_free_result($searchResult);
-            mysqli_free_result($result);
-            removeFriendLogic($conn);
+            deleteFriends($conn,$userID);
         }
     }
 }
 
-function removeFriendLogic($conn){
-    $state = "error";
-
-
-    if(!$conn){
-        echo "Cannot connect to the database";
-    } else {
+function deleteFriends($conn){
+    if($conn){
         mysqli_select_db($conn,"social_db");
         $query = "SELECT * FROM myFriends WHERE user_ID = '".$_SESSION['ID']."'";
         $result = mysqli_query($conn, $query);
 
-        if (!$result) {
-          echo"Cannot fetch requested query";
-
-        } else {
+        if($result){
             while ($row = mysqli_fetch_assoc($result)) {
-                $myf_friendID2 = $row['friend_id'];
+                $friend_id = $row['friend_id'];
                 /*set the buttons to FRND_(their id) and called removeFriend to get functions*/
-                echo((isset($_POST["FRND_$myf_friendID2"]))? removeFriend($conn, $myf_friendID2): "");
+                if(isset($_POST["FRND_$friend_id"])){
+                    mysqli_select_db($conn,"social_db");
+                    $query = "DELETE FROM myFriends WHERE user_ID = ".$_SESSION['ID']." AND friend_id = $friend_id";
+                    $result = mysqli_query($conn, $query);
+
+                    if($result){
+                        $_SESSION['noOfFriends']--;
+                        $query = "UPDATE users SET num_of_friends = '".$_SESSION['noOfFriends']."' WHERE user_ID  = '".$_SESSION['ID']."'";
+                        $result = mysqli_query($conn, $query);
+            
+                        $query = "SELECT profile_name FROM users WHERE user_ID  = '$friend_id'";
+                        $result = mysqli_query($conn, $query);
+            
+                        while ($row = mysqli_fetch_assoc($result)) {
+                            echo "Friend Removed", $row['profile_name']." is no longer your friend. <br> <em>Please refresh your page to see changes.</em>";
+                            
+                        }
+                    }
+
+                }
+                
             }
 
             mysqli_free_result($result);
@@ -162,60 +153,29 @@ function removeFriendLogic($conn){
 }
 
 
-function removeFriend($conn, $userID){
-    $state = "error";
-    $errMsg="";
-
-    if (!$conn) {
-        echo "Cannot connect to the database";
-
-    } else {
-        mysqli_select_db($conn,"social_db");
-        $query = "DELETE FROM myFriends WHERE user_ID = ".$_SESSION['ID']." AND friend_id = $userID";
-        $result = mysqli_query($conn, $query);
-
-        if (!$result) {
-            echo"Cannot fetch requested query";
-
-        } else {
-            $state = "success";
-            $_SESSION['noOfFriends']--;
-            $query = "UPDATE users SET num_of_friends = '".$_SESSION['noOfFriends']."' WHERE user_ID  = '".$_SESSION['ID']."'";
-            $result = mysqli_query($conn, $query);
-
-            $query = "SELECT profile_name FROM users WHERE user_ID  = '$userID'";
-            $result = mysqli_query($conn, $query);
-
-            while ($row = mysqli_fetch_assoc($result)) {
-                echo "Friend Removed", $row['profile_name']." is no longer your friend. <br> <em>Please refresh your page to see changes.</em>";
-                
-            }
-        }
-    }
-}
-
-
-function showRegisteredUsers($conn, $lines, $numOfPage){
+function showRegisteredUsers($conn, $lines){
     $state = "error";
     if($conn){
         getNow($conn);
         $query = "SELECT user_ID, profile_name FROM users 
         WHERE user_ID NOT IN (SELECT friend_id FROM myFriends where user_ID=".$_SESSION['ID'].")  AND user_ID != ".$_SESSION['ID']."
-        GROUP BY profile_name LIMIT $lines, $numOfPage"; 
+        GROUP BY profile_name LIMIT $lines, 5"; 
         $result = mysqli_query($conn, $query);
         if($result){
             while ($row = mysqli_fetch_assoc($result)) {
                 $profile_name = $row['profile_name'];
                 $userID = $row['user_ID'];
                 echo "
+            
                     <tr>
                         <td>
-                            <p>$profile_name</p>
+                            $profile_name
                         </td>
                         <td>
                             <input type='submit' name='Friends".$userID."' value='Add Friend'>
                         </td>
                     </tr>
+
                     ";
                     
         }
@@ -233,58 +193,46 @@ function showRegisteredUsers($conn, $lines, $numOfPage){
 }
 
 function addFriendLogic($conn){
-    $state = "error";
-    if(!$conn){
-        echo"Cannot connect to the database";
-        
-    } else {
+    if($conn){
         mysqli_select_db($conn,"social_db");
         $query = "SELECT * FROM users WHERE user_ID != '".$_SESSION['ID']."'";
         $result = mysqli_query($conn, $query);
-
-        if (!$result) {
-            array_push($errMsg, "Query", "Cannot fetch requested query");
-            
-        } else {
+    }if ($result){
             while ($row = mysqli_fetch_assoc($result)) {
                 $userID = $row['user_ID']; 
-                echo((isset($_POST["Friends$userID"]))? addFriend($conn, $userID): "");
-            }
-            mysqli_free_result($result);
-            mysqli_close($conn);
-        }
-    }
-}
-
-function addFriend($conn, $userID){
-    $state = "error";
-   
-
-    if (!$conn) {
+                if(isset($_POST["Friends$userID"])){
+                    $query = "SELECT * FROM users ORDER BY profile_name ASC";
+                    $result = mysqli_query($conn, $query);
         
-    } else {
-        getNow($conn);
-        $query = "INSERT INTO myFriends VALUES(".$_SESSION['ID'].", $userID)";
-        $result = mysqli_query($conn, $query);
+                    if($result){
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        if ($_SESSION['name'] == $row['profile_name']) {
+                            $_SESSION['ID'] = $row['user_ID'];
+                        }
+                    }
+                    $query = "INSERT INTO myFriends VALUES(".$_SESSION['ID'].", $userID)";
+                    $result = mysqli_query($conn, $query);
+                    if($result){
+                        $_SESSION['noOfFriends']++;
+                        $query = "UPDATE users SET num_of_friends = '".$_SESSION['noOfFriends']."' WHERE user_id = '".$_SESSION['ID']."'";
+                        $result = mysqli_query($conn, $query);
 
-        if (!$result) {
-           
-        } else {
-            $state = "success";
-            $_SESSION['noOfFriends']++;
-            $query = "UPDATE users SET num_of_friends = '".$_SESSION['noOfFriends']."' WHERE friend_id = '".$_SESSION['ID']."'";
-            $result = mysqli_query($conn, $query);
+                        $query = "SELECT profile_name FROM users WHERE user_ID  = '$userID'";
+                        $result = mysqli_query($conn, $query);
 
-            $query = "SELECT profile_name FROM users WHERE user_ID  = '$userID'";
-            $result = mysqli_query($conn, $query);
-
-            while ($row = mysqli_fetch_assoc($result)) {
-                echo"Friend Added", $row['profile_name']." is now your new friend!<br> <em>Please refresh your page to see changes.</em>";
-
-            }
+                        while ($row = mysqli_fetch_assoc($result)) {
+                        echo "<div class='t1'>";
+                        echo"Friend Added", $row['profile_name']." is now your new friend!<br>Please refresh your page to see changes";
+                        echo "</div>";
+                        }
+                }
+            }   
         }
+            }
+        }else{
+            echo"Cannot connect to the database";
+        }
+        mysqli_free_result($result);
+        mysqli_close($conn);
     }
-}
-
-
 ?>
