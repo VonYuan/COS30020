@@ -1,4 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
 
+</head>
+<body>
    
 <?php
     include("functions/function.php");
@@ -29,29 +39,48 @@
 
     require_once("functions/connection.php");
     $numFriendsPerPage = 5;
-    $offSet = ($pageNum-1) * $numFriendsPerPage;
+    $lines = ($pageNum-1) * $numFriendsPerPage;
     $totalFriends = $_SESSION['noOfFriends'];
     //round totalPage as a whole number
-    $totalPage = ceil($totalFriends / $numFriendsPerPage);
+    $totalPage = $totalFriends /5 ;
+
+    require_once("functions/function.php");
+    echo"<form method='POST' action='friendlist.php'>";
+
+     require_once("functions/connection.php");
+     require_once("functions/function.php");
+     echo "<div class= 'signupFrm'>";
+     echo "<table class='styled-table'>";
+     echo"<thead>
+         <tr>
+             <th>Name</th>
+             <th>Click To Add</th>
+         </tr>
+     </thead>";
+     showFriends($conn, $lines);
+     echo"</table>";
+     echo"</div>";
+
+
+     echo '</form>';
 
     if($totalFriends > 5){
-        if($pageNum < 2){
-            echo "<a class='button' href='?pageNum=".($pageNum+1)."'> Next </a>";
-        }elseif($pageNum > $totalPage-1){
-            echo "<a class='button' href='?pageNum=".($pageNum-1)."'> Prev </a>";
-        }else{
-            echo "<a class='button' href='?pageNum=".($pageNum-1)."'> Prev </a>";
-            echo "<a class='button' href='?pageNum=".($pageNum+1)."'> Next </a>";
+        if ($pageNum < 2) {
+            echo"<div class = 'page'>";
+            echo "<li class= 't'><a class='button' href='?pageNum=".($pageNum+1)."'> Next </a></li>";
+        } elseif ($pageNum > $totalPage-1) {
+            echo"<div class = 'page'>";
+            echo "<li class= 't'><a class='button' href='?pageNum=".($pageNum-1)."'> Prev </a></li>";
+        } else {
+            echo"<div class = 'page'>";
+            echo "<li class= 't'><a class='button' href='?pageNum=".($pageNum-1)."'> Prev </a></li>";
+            echo "<li class= 't'><a class='button' href='?pageNum=".($pageNum+1)."'> Next </a></li>";
+            echo"</div>";
         }
     }
     
 ?>
-        <form method="POST" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-            <table class="friendList">
-            <?php
-                require_once("functions/connection.php");
-                showFriends($conn, $offSet, $numFriendsPerPage);
-            ?>
-            </table>
-        </form>
 
+
+</body>
+</html>

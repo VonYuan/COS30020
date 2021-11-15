@@ -25,6 +25,7 @@
     ";
     //if pageNum doesn't exist, set var pageNum as a GET method
     //else set it as 1
+    
     if(isset($_GET['pageNum'])){
         $pageNum = $_GET['pageNum'];
     }else{
@@ -40,7 +41,8 @@
     $r_c = mysqli_num_rows($result);
     //round totalPage as a whole number
     $totalPage = $r_c/5;
-    
+    $totalFriends = $_SESSION['noOfFriends'];
+
     require_once("functions/function.php");
     echo"<form method='POST' action='friendadd.php'>";
 
@@ -60,6 +62,7 @@
 
 
      echo '</form>';
+
         if ($pageNum < 2) {
             echo"<div class = 'page'>";
             echo "<li class= 't'><a class='button' href='?pageNum=".($pageNum+1)."'> Next </a></li>";
@@ -72,7 +75,7 @@
             echo "<li class= 't'><a class='button' href='?pageNum=".($pageNum+1)."'> Next </a></li>";
             echo"</div>";
         }
-    
+
 ?>
         </body>
 </html>

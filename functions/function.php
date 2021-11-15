@@ -76,7 +76,7 @@ function getNow($conn){
             }
         }   
 }
-function showFriends($conn, $lines, $numOfPage){
+function showFriends($conn, $lines){
     if($conn){
         mysqli_select_db($conn,"social_db");
         $query = "SELECT * FROM users ORDER BY profile_name ASC";
@@ -88,7 +88,7 @@ function showFriends($conn, $lines, $numOfPage){
                 $f_friendID = $row['user_ID'];
                 $f_name = $row['profile_name'];
 
-                $searchQuary = "SELECT * FROM myFriends WHERE user_ID = '".$_SESSION['ID']."' LIMIT $lines, $numOfPage";
+                $searchQuary = "SELECT * FROM myFriends WHERE user_ID = '".$_SESSION['ID']."' LIMIT $lines, 5";
                 $searchResult = mysqli_query($conn, $searchQuary);
 
                 while ($row = mysqli_fetch_assoc($searchResult)) {
@@ -108,7 +108,7 @@ function showFriends($conn, $lines, $numOfPage){
                 }
             }
             mysqli_free_result($searchResult);
-            deleteFriends($conn,$userID);
+            deleteFriends($conn);
         }
     }
 }
@@ -122,7 +122,6 @@ function deleteFriends($conn){
         if($result){
             while ($row = mysqli_fetch_assoc($result)) {
                 $friend_id = $row['friend_id'];
-                /*set the buttons to FRND_(their id) and called removeFriend to get functions*/
                 if(isset($_POST["FRND_$friend_id"])){
                     mysqli_select_db($conn,"social_db");
                     $query = "DELETE FROM myFriends WHERE user_ID = ".$_SESSION['ID']." AND friend_id = $friend_id";
